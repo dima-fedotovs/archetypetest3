@@ -4,22 +4,20 @@
       xmlns:ui="http://xmlns.jcp.org/jsf/facelets" xmlns:h="http://xmlns.jcp.org/jsf/html"
       xmlns:f="http://xmlns.jcp.org/jsf/core">
 
-<ui:composition template="template.xhtml">
+<ui:composition template="/template.xhtml">
     <ui:define name="content">
         <div class="w3-content">
-            <h:form id="registration" styleClass="w3-container w3-margin-top">
+            <h:form id="signInForm" styleClass="w3-container w3-margin-top">
                 <h:panelGroup rendered="#{not currentUser.signedIn}">
 
-                    <h:messages/>
-
-                    <label>E-mail</label>
-                    <h:inputText styleClass="w3-input w3-border"
+                    <label>E-mail</label><h:message for="email" errorClass="error-message"/>
+                    <h:inputText id="email" styleClass="w3-input w3-border"
                                  value="#{signInForm.email}"
                                  required="true"
                                  requiredMessage="E-mail is required"/>
 
-                    <label>Password</label>
-                    <h:inputSecret styleClass="w3-input w3-border"
+                    <label>Password</label><h:message for="password" errorClass="error-message"/>
+                    <h:inputSecret id="password" styleClass="w3-input w3-border"
                                    value="#{signInForm.password}"
                                    redisplay="true"
                                    required="true"

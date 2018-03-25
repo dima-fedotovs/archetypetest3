@@ -1,21 +1,25 @@
 package javacourses.boundary;
 
+import javacourses.entity.Role;
 import javacourses.entity.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.enterprise.context.RequestScoped;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
+import javax.faces.view.ViewScoped;
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -24,45 +28,70 @@ import java.util.Objects;
  * @version 1.1.0
  * @since 1.1.0
  */
-@RequestScoped
+@ViewScoped
 @Named
-public class RegistrationForm {
+public class RegistrationForm implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(RegistrationForm.class);
     private static final String EMAIL_REGEX = "(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])";
     @PersistenceContext
     private EntityManager em;
+    @Inject
+    private EmailSender emailSender;
+
     private String email;
     private String fullName;
     private String password1;
     private String password2;
+    private String confirmationCode;
+    private boolean awaitConfirmation = false;
 
     @Transactional
-    public String register() {
+    public void register() {
         if (!Objects.equals(password1, password2)) {
-            FacesContext.getCurrentInstance()
-                    .addMessage("registrationForm:password2",
-                            new FacesMessage("Password doesn't match the confirm password"));
-            return null;
+            addErrorMessage("registration:password2", "Password doesn't match the confirm password");
+            return;
         }
 
         if (emailExists()) {
-            FacesContext.getCurrentInstance()
-                    .addMessage("registrationForm:email",
-                            new FacesMessage("This email already exists"));
-            return null;
+            addErrorMessage("registration:email", "This email already exists");
+            return;
         }
 
-        createUser();
+        Role r = em.createQuery("select r from Role r where r.name = :name", Role.class)
+                .setParameter("name", "user")
+                .getSingleResult();
 
-        return "/sign-in.xhtml?faces-redirect=true";
-    }
-
-    private void createUser() {
         User u = new User();
         u.setEmail(email);
         u.setFullName(fullName);
         u.setPassword(hash(password1));
+        String code = emailSender.sendConfirmationCode(email);
+        u.setConfirmationCode(code);
+        u.setConfirmed(false);
+        u.setRoles(Collections.singleton(r));
         em.persist(u);
+
+        awaitConfirmation = true;
+    }
+
+    private void addErrorMessage(String fieldId, String message) {
+        FacesContext.getCurrentInstance()
+                .addMessage(fieldId,
+                        new FacesMessage(FacesMessage.SEVERITY_ERROR, message, null));
+    }
+
+    @Transactional
+    public String confirm() {
+        TypedQuery<User> query = em.createQuery("select u from User u where u.confirmed = false and u.email = :email", User.class);
+        query.setParameter("email", email);
+        User u = query.getSingleResult();
+        if (Objects.equals(u.getConfirmationCode(), confirmationCode)) {
+            u.setConfirmed(true);
+        } else {
+            addErrorMessage("registration:confirmationCode", "Incorrect confirmation code");
+            return null;
+        }
+        return "/sign-in.xhtml?faces-redirect=true";
     }
 
     private String hash(String password) {
@@ -117,5 +146,21 @@ public class RegistrationForm {
 
     public void setPassword2(String password2) {
         this.password2 = password2;
+    }
+
+    public boolean isAwaitConfirmation() {
+        return awaitConfirmation;
+    }
+
+    public void setAwaitConfirmation(boolean awaitConfirmation) {
+        this.awaitConfirmation = awaitConfirmation;
+    }
+
+    public String getConfirmationCode() {
+        return confirmationCode;
+    }
+
+    public void setConfirmationCode(String confirmationCode) {
+        this.confirmationCode = confirmationCode;
     }
 }

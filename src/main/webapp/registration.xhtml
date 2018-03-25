@@ -4,46 +4,60 @@
       xmlns:ui="http://xmlns.jcp.org/jsf/facelets" xmlns:h="http://xmlns.jcp.org/jsf/html"
       xmlns:f="http://xmlns.jcp.org/jsf/core">
 
-<ui:composition template="template.xhtml">
+<ui:composition template="/template.xhtml">
     <ui:define name="content">
         <div class="w3-content">
             <h:form id="registration" styleClass="w3-container w3-margin-top">
+                <h:panelGroup rendered="#{not registrationForm.awaitConfirmation}">
+                    <label>Full Name</label><h:message for="fullName" errorClass="error-message"/>
+                    <h:inputText id="fullName" styleClass="w3-input w3-border"
+                                 value="#{registrationForm.fullName}"
+                                 required="true"
+                                 requiredMessage="Full Name is required"/>
 
-                <h:messages/>
+                    <label>E-mail</label><h:message for="email" errorClass="error-message"/>
+                    <h:inputText id="email" styleClass="w3-input w3-border"
+                                 value="#{registrationForm.email}"
+                                 validatorMessage="It isn't valid email">
+                        <f:validateRegex pattern="#{registrationForm.emailRegex}"/>
+                    </h:inputText>
 
-                <label>Full Name</label>
-                <h:inputText id="fullName" styleClass="w3-input w3-border"
-                             value="#{registrationForm.fullName}"
-                             required="true"
-                             requiredMessage="Full Name is required"/>
+                    <label>Password</label><h:message for="password1" errorClass="error-message"/>
+                    <h:inputSecret id="password1" styleClass="w3-input w3-border"
+                                   value="#{registrationForm.password1}"
+                                   redisplay="true"
+                                   validatorMessage="Password should be 5 chars min">
+                        <f:validateLength minimum="5"/>
+                    </h:inputSecret>
 
-                <label>E-mail</label>
-                <h:inputText styleClass="w3-input w3-border"
-                             value="#{registrationForm.email}"
-                             validatorMessage="It isn't valid email">
-                    <f:validateRegex pattern="#{registrationForm.emailRegex}"/>
-                </h:inputText>
+                    <label>Repeat password</label><h:message for="password2" errorClass="error-message"/>
+                    <h:inputSecret id="password2" styleClass="w3-input w3-border"
+                                   redisplay="true"
+                                   value="#{registrationForm.password2}"/>
 
-                <label>Password</label>
-                <h:inputSecret styleClass="w3-input w3-border"
-                               value="#{registrationForm.password1}"
-                               redisplay="true"
-                               validatorMessage="Password should be 5 chars min">
-                    <f:validateLength minimum="5"/>
-                </h:inputSecret>
+                    <div class="w3-margin-top">
+                        <h:commandButton styleClass="w3-btn w3-green"
+                                         value="Register"
+                                         action="#{registrationForm.register}">
+                            <f:ajax execute="fullName email password1 password2" render="@form"/>
+                        </h:commandButton>
+                    </div>
+                </h:panelGroup>
 
-                <label>Repeat password</label>
-                <h:inputSecret styleClass="w3-input w3-border"
-                               redisplay="true"
-                               value="#{registrationForm.password2}"/>
-
-                <div class="w3-margin-top">
-                    <h:commandButton styleClass="w3-btn w3-green"
-                                     value="Register"
-                                     action="#{registrationForm.register}">
-                        <f:ajax execute="@form" render="@form"/>
-                    </h:commandButton>
-                </div>
+                <h:panelGroup rendered="#{registrationForm.awaitConfirmation}">
+                    <label>Confirmation Code</label><h:message for="confirmationCode" errorClass="error-message"/>
+                    <h:inputText id="confirmationCode" styleClass="w3-input w3-border"
+                                 value="#{registrationForm.confirmationCode}"
+                                 required="true"
+                                 requiredMessage="Confirmation Code is required"/>
+                    <div class="w3-margin-top">
+                        <h:commandButton styleClass="w3-btn w3-green"
+                                         value="Confirm"
+                                         action="#{registrationForm.confirm}">
+                            <f:ajax execute="email confirmationCode" render="@form"/>
+                        </h:commandButton>
+                    </div>
+                </h:panelGroup>
             </h:form>
         </div>
     </ui:define>

@@ -27,7 +27,8 @@ public class User implements Serializable {
     private Set<Role> roles;
     @Column(name = "confirmation_code")
     private String confirmationCode;
-
+    @Column(nullable = false)
+    private boolean confirmed = false;
 
     public Long getId() {
         return id;
@@ -75,6 +76,14 @@ public class User implements Serializable {
 
     public void setConfirmationCode(String confirmationCode) {
         this.confirmationCode = confirmationCode;
+    }
+
+    public boolean isConfirmed() {
+        return confirmed;
+    }
+
+    public void setConfirmed(boolean confirmed) {
+        this.confirmed = confirmed;
     }
 
     @Override

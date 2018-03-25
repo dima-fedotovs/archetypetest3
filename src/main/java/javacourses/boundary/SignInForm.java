@@ -4,9 +4,9 @@ import javacourses.entity.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.enterprise.context.RequestScoped;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
+import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.persistence.EntityManager;
@@ -16,15 +16,16 @@ import javax.persistence.TypedQuery;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
+import java.io.Serializable;
 
 /**
  * @author Dimitrijs Fedotovs <a href="http://www.bug.guru">www.bug.guru</a>
  * @version 1.1.0
  * @since 1.1.0
  */
-@RequestScoped
+@ViewScoped
 @Named
-public class SignInForm {
+public class SignInForm implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(SignInForm.class);
     @PersistenceContext
     private EntityManager em;
@@ -37,7 +38,7 @@ public class SignInForm {
     private String password;
 
     @Transactional
-    public void signIn() {
+    public String signIn() {
         TypedQuery<User> query = em.createQuery("select u from User u where u.email = :email", User.class);
         query.setParameter("email", email);
         try {
@@ -45,6 +46,7 @@ public class SignInForm {
             request.login(email, password);
             currentUser.setSignedInUser(user);
             logger.debug("User {} is signed in", user);
+            return "/sign-in.xhtml?faces-redirect=true";
         } catch (NoResultException e) {
             logger.error("Sign in error", e);
             addMessageUnknowEmail();
@@ -52,6 +54,7 @@ public class SignInForm {
             logger.error("Sign in error", e);
             addMessageWrongPassword();
         }
+        return null;
     }
 
     public void signOut() {
