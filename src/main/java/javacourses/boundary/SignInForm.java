@@ -1,6 +1,8 @@
 package javacourses.boundary;
 
 import javacourses.entity.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.RequestScoped;
 import javax.faces.application.FacesMessage;
@@ -11,8 +13,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
-import java.util.Objects;
 
 /**
  * @author Dimitrijs Fedotovs <a href="http://www.bug.guru">www.bug.guru</a>
@@ -22,28 +25,41 @@ import java.util.Objects;
 @RequestScoped
 @Named
 public class SignInForm {
+    private static final Logger logger = LoggerFactory.getLogger(SignInForm.class);
     @PersistenceContext
     private EntityManager em;
     @Inject
     private CurrentUser currentUser;
+    @Inject
+    private HttpServletRequest request;
 
     private String email;
     private String password;
 
     @Transactional
     public void signIn() {
-        currentUser.setSignedInUser(null);
         TypedQuery<User> query = em.createQuery("select u from User u where u.email = :email", User.class);
         query.setParameter("email", email);
         try {
             User user = query.getSingleResult();
-            if (!Objects.equals(user.getPassword(), password)) {
-                addMessageWrongPassword();
-                return;
-            }
+            request.login(email, password);
             currentUser.setSignedInUser(user);
+            logger.debug("User {} is signed in", user);
         } catch (NoResultException e) {
+            logger.error("Sign in error", e);
             addMessageUnknowEmail();
+        } catch (ServletException e) {
+            logger.error("Sign in error", e);
+            addMessageWrongPassword();
+        }
+    }
+
+    public void signOut() {
+        try {
+            request.logout();
+            currentUser.setSignedInUser(null);
+        } catch (ServletException e) {
+            logger.error("Sign out error", e);
         }
     }
 

@@ -1,6 +1,8 @@
 package javacourses.boundary;
 
 import javacourses.entity.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.RequestScoped;
 import javax.faces.application.FacesMessage;
@@ -10,6 +12,10 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 
@@ -21,6 +27,7 @@ import java.util.Objects;
 @RequestScoped
 @Named
 public class RegistrationForm {
+    private static final Logger logger = LoggerFactory.getLogger(RegistrationForm.class);
     private static final String EMAIL_REGEX = "(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])";
     @PersistenceContext
     private EntityManager em;
@@ -31,7 +38,7 @@ public class RegistrationForm {
 
     @Transactional
     public String register() {
-        if (Objects.equals(password1, password2)) {
+        if (!Objects.equals(password1, password2)) {
             FacesContext.getCurrentInstance()
                     .addMessage("registrationForm:password2",
                             new FacesMessage("Password doesn't match the confirm password"));
@@ -47,19 +54,31 @@ public class RegistrationForm {
 
         createUser();
 
-        return "/signin.xhtml?faces-redirect=true";
+        return "/sign-in.xhtml?faces-redirect=true";
     }
 
     private void createUser() {
         User u = new User();
         u.setEmail(email);
         u.setFullName(fullName);
-        u.setPassword(password1);
+        u.setPassword(hash(password1));
         em.persist(u);
+    }
+
+    private String hash(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-512");
+            byte[] hash = digest.digest(password.getBytes("UTF-8"));
+            return Base64.getMimeEncoder(76, new byte[]{'\n'}).encodeToString(hash);
+        } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+            logger.error("This never can happen!", e);
+            throw new IllegalStateException(e);
+        }
     }
 
     private boolean emailExists() {
         TypedQuery<User> query = em.createQuery("select u from User u where u.email = :email", User.class);
+        query.setParameter("email", email);
         List<User> result = query.getResultList();
         return result.size() > 0;
     }

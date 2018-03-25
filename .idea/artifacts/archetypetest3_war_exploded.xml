@@ -6,6 +6,10 @@
         <element id="directory" name="classes">
           <element id="module-output" name="archetypetest3" />
         </element>
+        <element id="directory" name="lib">
+          <element id="library" level="project" name="Maven: org.slf4j:slf4j-api:1.7.22" />
+          <element id="library" level="project" name="Maven: org.slf4j:slf4j-jdk14:1.7.22" />
+        </element>
       </element>
       <element id="directory" name="META-INF">
         <element id="file-copy" path="$PROJECT_DIR$/target/archetypetest3/META-INF/MANIFEST.MF" />
