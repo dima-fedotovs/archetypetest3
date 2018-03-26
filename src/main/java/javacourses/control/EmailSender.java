@@ -1,4 +1,4 @@
-package javacourses.boundary;
+package javacourses.control;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

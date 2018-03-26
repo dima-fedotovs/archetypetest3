@@ -36,6 +36,8 @@ All the configuration should be done in the file standalone.xml. This file can b
             </authentication>
         </security-domain>
 
+3. Just in case there is one user `admin` created with password `admin` by default. See `load.sql` script for details
+
 ## Logging
 
 1. Find the block `<subsystem xmlns="urn:jboss:domain:logging:3.0">` in the standalone.xml file

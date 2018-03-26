@@ -1,5 +1,6 @@
 package javacourses.boundary;
 
+import javacourses.control.UserControl;
 import javacourses.entity.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,13 +10,8 @@ import javax.faces.context.FacesContext;
 import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import javax.transaction.Transactional;
 import java.io.Serializable;
 
 /**
@@ -27,8 +23,8 @@ import java.io.Serializable;
 @Named
 public class SignInForm implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(SignInForm.class);
-    @PersistenceContext
-    private EntityManager em;
+    @Inject
+    private UserControl userControl;
     @Inject
     private CurrentUser currentUser;
     @Inject
@@ -37,19 +33,17 @@ public class SignInForm implements Serializable {
     private String email;
     private String password;
 
-    @Transactional
     public String signIn() {
-        TypedQuery<User> query = em.createQuery("select u from User u where u.email = :email", User.class);
-        query.setParameter("email", email);
+        User user = userControl.findUserByEmail(email, true);
+        if (user == null) {
+            addMessageUnknowEmail();
+            return null;
+        }
         try {
-            User user = query.getSingleResult();
             request.login(email, password);
             currentUser.setSignedInUser(user);
             logger.debug("User {} is signed in", user);
             return "/sign-in.xhtml?faces-redirect=true";
-        } catch (NoResultException e) {
-            logger.error("Sign in error", e);
-            addMessageUnknowEmail();
         } catch (ServletException e) {
             logger.error("Sign in error", e);
             addMessageWrongPassword();
