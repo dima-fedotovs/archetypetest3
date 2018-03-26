@@ -4,7 +4,7 @@
       xmlns:ui="http://xmlns.jcp.org/jsf/facelets" xmlns:h="http://xmlns.jcp.org/jsf/html"
       xmlns:f="http://xmlns.jcp.org/jsf/core">
 
-<ui:composition template="/template.xhtml">
+<ui:composition template="/WEB-INF/template.xhtml">
     <ui:define name="content">
         <div class="w3-content">
             <h:form id="signInForm" styleClass="w3-container w3-margin-top">
@@ -23,12 +23,24 @@
                                    required="true"
                                    requiredMessage="Password is required"/>
 
-                    <div class="w3-margin-top">
-                        <h:commandButton styleClass="w3-btn w3-green"
-                                         value="Sign In"
-                                         action="#{signInForm.signIn}">
-                            <f:ajax execute="@form" render="@form"/>
-                        </h:commandButton>
+                    <div class="w3-margin-top w3-row">
+                        <div class="w3-col s12 m4 l4 w3-padding-small" style="padding-left:0!important">
+                            <h:commandButton styleClass="w3-btn w3-green" style="width: 100%"
+                                             value="Sign In"
+                                             action="#{signInForm.signIn}">
+                                <f:ajax execute="@form" render="@form"/>
+                            </h:commandButton>
+                        </div>
+                        <div class="w3-col s12 m4 l4 w3-padding-small">
+                            <h:link styleClass="w3-btn w3-yellow" style="width: 100%"
+                                    value="New user"
+                                    outcome="/registration.xhtml"/>
+                        </div>
+                        <div class="w3-col s12 m4 l4 w3-padding-small" style="padding-right:0!important">
+                            <h:link styleClass="w3-btn w3-red w3-col s12 m4 l4" style="width: 100%"
+                                    value="Reset password"
+                                    outcome="/reset.xhtml"/>
+                        </div>
                     </div>
                 </h:panelGroup>
                 <h:panelGroup rendered="#{currentUser.signedIn}">

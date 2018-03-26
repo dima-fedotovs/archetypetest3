@@ -1,12 +1,11 @@
 package javacourses.boundary;
 
 import javacourses.control.UserControl;
+import javacourses.control.Util;
 import javacourses.entity.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.faces.application.FacesMessage;
-import javax.faces.context.FacesContext;
 import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -36,7 +35,7 @@ public class SignInForm implements Serializable {
     public String signIn() {
         User user = userControl.findUserByEmail(email, true);
         if (user == null) {
-            addMessageUnknowEmail();
+            Util.addError("signInForm:email", "Unknown email");
             return null;
         }
         try {
@@ -46,7 +45,7 @@ public class SignInForm implements Serializable {
             return "/sign-in.xhtml?faces-redirect=true";
         } catch (ServletException e) {
             logger.error("Sign in error", e);
-            addMessageWrongPassword();
+            Util.addError("signInForm:password", "Wrong password");
         }
         return null;
     }
@@ -58,18 +57,6 @@ public class SignInForm implements Serializable {
         } catch (ServletException e) {
             logger.error("Sign out error", e);
         }
-    }
-
-    private void addMessageWrongPassword() {
-        FacesContext.getCurrentInstance()
-                .addMessage("signInForm:password",
-                        new FacesMessage("Wrong password"));
-    }
-
-    private void addMessageUnknowEmail() {
-        FacesContext.getCurrentInstance()
-                .addMessage("signInForm:email",
-                        new FacesMessage("Unknown email"));
     }
 
     public String getEmail() {

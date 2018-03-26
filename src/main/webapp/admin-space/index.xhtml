@@ -3,10 +3,11 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
 
-<ui:composition template="/template.xhtml">
+<ui:composition template="/WEB-INF/template.xhtml">
     <ui:define name="content">
         <div class="w3-content">
-            <h3>This is admin area</h3>
+            <h3>You see this page because you are logged in as administrator</h3>
+            <h3>This page (and other pages in /admin-space) accessible only to admins</h3>
         </div>
     </ui:define>
 </ui:composition>

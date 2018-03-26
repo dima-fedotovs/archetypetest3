@@ -28,7 +28,7 @@
     <security-constraint>
         <web-resource-collection>
             <web-resource-name>Only for registered users</web-resource-name>
-            <url-pattern>/profile.xhtml</url-pattern>
+            <url-pattern>/user-space/*</url-pattern>
         </web-resource-collection>
         <auth-constraint>
             <role-name>user</role-name>
@@ -38,7 +38,7 @@
     <security-constraint>
         <web-resource-collection>
             <web-resource-name>Admin area</web-resource-name>
-            <url-pattern>/admin/*</url-pattern>
+            <url-pattern>/admin-space/*</url-pattern>
         </web-resource-collection>
         <auth-constraint>
             <role-name>admin</role-name>

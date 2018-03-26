@@ -44,12 +44,24 @@
     <div class="content">
         <h:form>
             <nav class="w3-bar w3-black">
+                <h:link value="Home"
+                        outcome="/index.xhtml"
+                        styleClass="w3-bar-item w3-button"/>
+                <h:link value="User Space"
+                        outcome="/user-space/index.xhtml"
+                        styleClass="w3-bar-item w3-button"
+                        rendered="#{request.isUserInRole('user')}"/>
+                <h:link value="Admin Space"
+                        outcome="/admin-space/index.xhtml"
+                        styleClass="w3-bar-item w3-button"
+                        rendered="#{request.isUserInRole('admin')}"/>
+
                 <h:link value="Sign in / Register"
                         outcome="/sign-in.xhtml"
                         styleClass="w3-bar-item w3-button w3-right"
                         rendered="#{not currentUser.signedIn}"/>
-                <h:link value="#{currentUser.signedInUser.fullName}"
-                        outcome="/profile.xhtml"
+                <h:commandLink value="Sign out"
+                        action="#{signInForm.signOut}"
                         styleClass="w3-bar-item w3-button w3-right"
                         rendered="#{currentUser.signedIn}"/>
             </nav>
